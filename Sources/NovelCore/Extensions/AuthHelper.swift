@@ -1,4 +1,4 @@
-import Auth
+import AuthProvider
 
 public extension Helper {
 

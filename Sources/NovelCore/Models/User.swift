@@ -1,10 +1,7 @@
 import Vapor
 import Fluent
 import HTTP
-import Turnstile
-import TurnstileCrypto
-import TurnstileWeb
-import Auth
+import AuthProvider
 
 public final class User: Model {
 

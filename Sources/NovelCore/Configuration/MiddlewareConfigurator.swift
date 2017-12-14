@@ -1,5 +1,5 @@
 import Vapor
-import Auth
+import AuthProvider
 
 struct MiddlewareConfigurator: Configurator {
 

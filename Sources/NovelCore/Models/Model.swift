@@ -1,8 +1,8 @@
 import Foundation
 import Vapor
-import Fluent
+import FluentProvider
 
-public class Model: Vapor.Model {
+public class Model: FluentProvider.Model {
 
   public enum ModelError: Error {
     case createNotImplemented
