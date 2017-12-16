@@ -18,7 +18,7 @@ public final class Application {
   public var configurators: [Configurator] = []
 
   public init() {
-    drop = Droplet()
+    drop = try Droplet()
   }
 
   public func start() throws {
@@ -26,7 +26,7 @@ public final class Application {
     try prepare(features: features)
     try prepare(configurators: configurators)
 
-    drop.run()
+    try drop.run()
   }
 
   func prepare(configurators: [Configurator]) throws {
