@@ -67,7 +67,7 @@ public final class User: Model {
 
 // MARK: - Authentication
 
-extension User: Auth.User {
+extension User: PasswordAuthenticatable {
 
   /**
     Authenticates the user with given credentials.

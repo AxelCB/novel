@@ -1,5 +1,6 @@
 import Vapor
 import Foundation
+import Validation
 
 public protocol NodeValidator {
   var node: Node { get }
@@ -28,15 +29,15 @@ public extension NodeValidator {
     return errors.isEmpty
   }
 
-  mutating func validate<T: ValidationSuite>(key: String, by suite: T.Type)
-    where T.InputType: PolymorphicInitializable {
+  mutating func validate<T: Validator>(key: String, by suite: T.Type)
+    where T.Input: NodeInitializable {
       validate(key: key) { value in
         _ = try value.validated(by: suite)
       }
   }
 
   mutating func validate<T: Validator>(key: String, by validator: T)
-    where T.InputType: PolymorphicInitializable {
+    where T.Input: NodeInitializable {
       validate(key: key) { value in
         _ = try value.validated(by: validator)
       }
