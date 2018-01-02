@@ -4,9 +4,9 @@ import PostgreSQLProvider
 
 struct DatabaseConfigurator: Configurator {
 
-  func configure(drop: Droplet) throws {
-    try drop.addProvider(PostgreSQLProvider.Provider.self)
-    drop.preparations = [
+  func configure(config: Config) throws {
+    try config.addProvider(PostgreSQLProvider.Provider.self)
+    config.preparations = [
       Content.self,
       Entry.self,
       Field.self,

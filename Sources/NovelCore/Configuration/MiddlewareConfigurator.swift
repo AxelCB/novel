@@ -3,10 +3,9 @@ import AuthProvider
 
 struct MiddlewareConfigurator: Configurator {
 
-  func configure(drop: Droplet) throws {
-    let cache = SessionCache()
+  func configure(config: Config) throws {
     let authMiddleware = PasswordAuthenticationMiddleware(User.self)
-
-    drop.addConfigurable(middleware: authMiddleware, name: "auth")
+    
+    config.addConfigurable(middleware: authMiddleware, name: "auth")
   }
 }

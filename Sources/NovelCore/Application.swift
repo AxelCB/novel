@@ -8,6 +8,7 @@ public protocol Feature {
 public final class Application {
 
   let drop: Droplet
+    let config: Config
 
   let coreConfigurators: [Configurator] = [
     DatabaseConfigurator(),
@@ -18,7 +19,13 @@ public final class Application {
   public var configurators: [Configurator] = []
 
   public init() {
-    drop = try Droplet()
+    do {
+        drop = try Droplet()
+        config = try Config()
+    } catch {
+        fatalError("Failed to initialize app")
+    }
+    
   }
 
   public func start() throws {
@@ -31,7 +38,7 @@ public final class Application {
 
   func prepare(configurators: [Configurator]) throws {
     for configurator in configurators {
-      try configurator.configure(drop: drop)
+      try configurator.configure(config: config)
     }
   }
 
