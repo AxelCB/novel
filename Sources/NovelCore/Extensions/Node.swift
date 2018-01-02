@@ -3,7 +3,7 @@ import Vapor
 public extension Node {
 
   mutating func merge(with node: Node) {
-    guard let object = node.nodeObject else {
+    guard let object = node.object else {
       return
     }
 

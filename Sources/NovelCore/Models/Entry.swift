@@ -3,77 +3,76 @@ import Vapor
 import Fluent
 
 public final class Entry: Model {
+    
+    public static var entityName: String {
+        return "entries"
+    }
 
-  public override class var entityName: String {
-    return "entries"
-  }
+    public enum Key: String {
+        case id
+        case title
+        case publishedAt
+        case prototypeId
+    }
+    
+    public var storage = Storage()
+    public var validator: NodeValidator.Type? = EntryValidator.self
 
-  public enum Key: String {
-    case title
-    case publishedAt
-    case prototypeId
-  }
+    // Fields
+    public var title: String
+    public var publishedAt: Date
 
-  // Fields
-  public var title: String
-  public var publishedAt: Date
+    // Relations
+    public var prototypeId: Identifier?
 
-  // Relations
-  public var prototypeId: Node?
+    public func prototype() throws -> Parent<Entry, Prototype> {
+        return parent(id: prototypeId)
+    }
 
-  public func prototype() throws -> Parent<Prototype> {
-    return try parent(prototypeId)
-  }
+    public func set(prototype: Prototype) {
+        prototypeId = prototype.id
+    }
 
-  public func set(prototype: Prototype) {
-    prototypeId = prototype.id
-  }
+    public func contents() -> Children<Entry, Content> {
+        return children()
+    }
+    
+    public init(row: Row) throws {
+        title = try row.get(Key.title.value)
+        publishedAt = try row.get(Key.publishedAt.value)
+        prototypeId = try row.get(Key.prototypeId.value)
+    }
+    
+    public func makeRow() throws -> Row {
+        var row = Row()
+        try row.set(Key.title.value, title)
+        try row.set(Key.publishedAt.value, publishedAt)
+        try row.set(Key.prototypeId.value, prototypeId)
+        return row
+    }
+    
+    public init(json: JSON) throws {
+        title = try json.get(Key.title.value)
+        publishedAt = try json.get(Key.publishedAt.value)
+        prototypeId = try json.get(Key.prototypeId.value)
+    }
+    
+    public func makeJSON() throws -> JSON {
+        var json = JSON()
+        try json.set(Key.title.value, title)
+        try json.set(Key.publishedAt.value, publishedAt)
+        try json.set(Key.prototypeId.value, prototypeId)
+        return json
+    }
 
-  public func contents() -> Children<Content> {
-    return children()
-  }
-
-  /**
-    Initializer.
-   */
-  public required init(node: Node, in context: Context) throws {
-    title = node[Key.title.value]?.string ?? ""
-    publishedAt = node[Key.publishedAt.value]?.string?.iso8601 ?? Date()
-    prototypeId = node[Key.prototypeId.value]
-    try super.init(node: node, in: context)
-    validator = EntryValidator.self
-  }
-
-  /**
-    Serialization.
-   */
-  public override func makeNode() throws -> Node {
-    return try Node(node: [
-      Key.title.value: title,
-      Key.publishedAt.value: publishedAt.iso8601,
-      Key.prototypeId.value: prototypeId,
-    ])
-  }
-
-  /**
-   Preparation.
-   */
-  public override class func create(schema: Schema.Creator) throws {
-    schema.string(Key.title.value, length: 100)
-    schema.timestamp(Key.publishedAt.value)
-    schema.parent(Prototype.self, optional: false)
-  }
-}
-
-// MARK: - Helpers
-
-extension Entry {
-
-  public static func new() throws -> Entry {
-    let node = try Node(node: [
-      Key.title.value: ""
-    ])
-
-    return try Entry(node: node)
-  }
+    /**
+    Preparation.
+    */
+    public static func prepare(_ database: Database) throws {
+        try database.create(Entry.self) { (builder) in
+            builder.string(Key.title.value, length: 100)
+            builder.timestamp(Key.publishedAt.value)
+            builder.parent(Prototype.self, optional: false)
+        }
+    }
 }

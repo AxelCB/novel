@@ -2,50 +2,62 @@ import Vapor
 import Fluent
 
 public final class Session: Model {
+    
+    public enum Key: String {
+        case id
+        case token
+        case userId
+    }
+    
+    public var storage = Storage()
+    public var validator: NodeValidator.Type?
 
-  public enum Key: String {
-    case token
-    case userId
-  }
+    // Fields
+    public var token: String
 
-  // Fields
-  public var token: String
+    // Relations
+    public var userId: Identifier?
 
-  // Relations
-  public var userId: Node?
+    public func user() throws -> Parent<Session, User> {
+        return parent(id: userId)
+    }
 
-  public func user() throws -> Parent<User> {
-    return try parent(userId)
-  }
+    public func set(user: User) {
+        userId = user.id
+    }
+    
+    public init(row: Row) throws {
+        token = try row.get(Key.token.value)
+        userId = try row.get(Key.userId.value)
+    }
+    
+    public func makeRow() throws -> Row {
+        var row = Row()
+        try row.set(Key.token.value, token)
+        try row.set(Key.userId.value, userId)
+        return row
+    }
+    
+    public init(json: JSON) throws {
+        token = try json.get(Key.token.value)
+        userId = try json.get(Key.userId.value)
+    }
+    
+    public func makeJSON() throws -> JSON {
+        var json = JSON()
+        try json.set(Key.token.value, token)
+        try json.set(Key.userId.value, userId)
+        return json
+    }
 
-  public func set(user: User) {
-    userId = user.id
-  }
-
-  /**
-   Initializer.
-   */
-  public required init(node: Node, in context: Context) throws {
-    token = try node.extract(Key.token.value)
-    userId = node[Key.userId.value]
-    try super.init(node: node, in: context)
-  }
-
-  /**
-   Serialization.
-   */
-  public override func makeNode() throws -> Node {
-    return try Node(node: [
-      Key.token.value: token,
-      Key.userId.value: userId,
-      ])
-  }
-
-  /**
-   Preparation.
-   */
-  public override class func create(schema: Schema.Creator) throws {
-    schema.string(Key.token.value, unique: true)
-    schema.parent(User.self, optional: false)
-  }
+    /**
+     Preparation.
+     */
+    public static func prepare(_ database: Database) throws {
+        try database.create(self) { builder in
+            builder.id()
+            builder.string(Key.token.value, unique: true)
+            builder.parent(User.self, optional: false)
+        }
+    }
 }

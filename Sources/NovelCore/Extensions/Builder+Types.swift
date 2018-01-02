@@ -1,6 +1,6 @@
 import Fluent
 
-extension Schema.Creator {
+extension Builder {
 
   public func timestamp(_ name: String, optional: Bool = false, unique: Bool = false,
                         default: NodeRepresentable? = nil) {

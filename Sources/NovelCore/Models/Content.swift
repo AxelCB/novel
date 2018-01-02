@@ -2,70 +2,72 @@ import Vapor
 import Fluent
 
 public final class Content: Model {
+    
+    public enum Key: String {
+        case id
+        case body
+        case fieldId
+        case entryId
+    }
+    
+    public var storage = Storage()
+    public var validator: NodeValidator.Type? = ContentValidator.self
 
-  public enum Key: String {
-    case body
-    case fieldId
-    case entryId
-  }
+    // Fields
+    public var body: String
 
-  // Fields
-  public var body: String
+    // Relations
+    public var fieldId: Identifier?
+    public var entryId: Identifier?
 
-  // Relations
-  public var fieldId: Node?
-  public var entryId: Node?
+    public func field() throws -> Parent<Content, Field> {
+        return parent(id: fieldId)
+    }
 
-  public func field() throws -> Parent<Field> {
-    return try parent(fieldId)
-  }
+    public func set(field: Field) {
+        fieldId = field.id
+    }
 
-  public func set(field: Field) {
-    fieldId = field.id
-  }
+    public func set(entry: Entry) {
+        entryId = entry.id
+    }
+    
+    public init(row: Row) throws {
+        body = try row.get(Key.body.value)
+        fieldId = try row.get(Key.fieldId.value)
+        entryId = try row.get(Key.entryId.value)
+    }
+    
+    public func makeRow() throws -> Row {
+        var row = Row()
+        try row.set(Key.body.value, body)
+        try row.set(Key.fieldId.value, fieldId)
+        try row.set(Key.entryId.value, entryId)
+        return row
+    }
+    
+    public init(json: JSON) throws {
+        body = try json.get(Key.body.value)
+        fieldId = try json.get(Key.fieldId.value)
+        entryId = try json.get(Key.entryId.value)
+    }
+    
+    public func makeJSON() throws -> JSON {
+        var json = JSON()
+        try json.set(Key.body.value, body)
+        try json.set(Key.fieldId.value, fieldId)
+        try json.set(Key.entryId.value, entryId)
+        return json
+    }
 
-  public func set(entry: Entry) {
-    entryId = entry.id
-  }
-
-  /**
-   Initializer.
-   */
-  public required init(node: Node, in context: Context) throws {
-    body = node[Key.body.snaked]?.string ?? ""
-    fieldId = node[Key.fieldId.snaked]
-    entryId = node[Key.entryId.snaked]
-    try super.init(node: node, in: context)
-    validator = ContentValidator.self
-  }
-
-  /**
-   Serialization.
-   */
-  public override func makeNode() throws -> Node {
-    return try Node(node: [
-      Key.body.value: body,
-      Key.fieldId.value: fieldId,
-      Key.entryId.value: entryId
-      ])
-  }
-
-  /**
-   Preparation.
-   */
-  public override class func create(schema: Schema.Creator) throws {
-    schema.text(Key.body.snaked)
-    schema.parent(Field.self, optional: false)
-    schema.parent(Entry.self, optional: false)
-  }
-}
-
-// MARK: - Helpers
-
-extension Content {
-
-  public static func new() throws -> Content {
-    let node = try Node(node: [Key.body.value: ""])
-    return try Content(node: node)
-  }
+    /**
+    Preparation.
+    */
+    public static func prepare(_ database: Database) throws {
+        try database.create(Content.self) { builder in
+            builder.text(Key.body.snaked)
+            builder.parent(Field.self, optional: false)
+            builder.parent(Entry.self, optional: false)
+        }
+    }
 }
